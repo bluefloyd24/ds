@@ -7,6 +7,7 @@
 
 import asyncio
 import sys
+from pyrogram.errors import FloodWait
 from pyrogram.raw.functions.account import DeleteAccount
 from pyrogram.sync import idle
 from . import LOOP
@@ -17,7 +18,12 @@ DeleteAccount.__new__ = None
 
 
 async def main() -> None:
-    await User.start()
+    try:
+        await User.start()
+    except FloodWait as flood:
+        await asyncio.sleep(flood.value)
+        await User.start()
+
     await idle()
     await User.stop()
 

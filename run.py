@@ -8,6 +8,7 @@
 import argparse
 import shlex
 import sys
+from os import system
 from pathlib import Path
 from subprocess import run
 from version import __version__
@@ -99,30 +100,36 @@ parser.add_argument(
 def main() -> None:
     args = parser.parse_args()
     if args.prod:
+        system("clear")
         print(f"{BOLD}{GREEN}PRODUCTION MODE...{RST}")
         clean()
         print(f"{BOLD}{BLUE}>> {app}{RST}")
         run_cmd(app)
     elif args.dev:
+        system("clear")
         print(f"{BOLD}{GREEN}DEVELOPMENT MODE...{RST}")
         clean()
         lint()
         print(f"{BOLD}{BLUE}>> {app}{RST}")
         run_cmd(app)
     elif args.watch:
+        system("clear")
         print(f"{BOLD}{GREEN}WATCHED DEVELOPMENT MODE...{RST}")
         clean()
         print(f"{BOLD}{BLUE}>> {app_watch}{RST}")
         run_cmd(app_watch)
     elif args.lint:
+        system("clear")
         print(f"{BOLD}{YELLOW}Run linting and format code...{RST}")
         clean()
         lint()
     elif args.type:
+        system("clear")
         print(f"{BOLD}{YELLOW}Run type checker...{RST}")
         clean()
         run_cmd(mypy)
     elif args.clean:
+        system("clear")
         clean()
     else:
         print(f"{python} -m run --help")

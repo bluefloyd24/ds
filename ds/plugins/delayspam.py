@@ -9,7 +9,7 @@ from asyncio import sleep
 from typing import Union
 from pyrogram import filters
 from pyrogram.enums.parse_mode import ParseMode
-from pyrogram.errors import FloodWait
+from pyrogram.errors import FloodWait, SlowmodeWait
 from pyrogram.types import Message
 from ..bot import User
 from ..config import Var, shared
@@ -83,7 +83,7 @@ async def ds_(client: User, m: Message):
             try:
                 await copy(message, chat_id, delay)
             except BaseException:
-                break
+                raise
         DS1_TASK.discard(chat_id)
     elif ds == "2":
         DS2_TASK.add(chat_id)
@@ -93,7 +93,7 @@ async def ds_(client: User, m: Message):
             try:
                 await copy(message, chat_id, delay)
             except BaseException:
-                break
+                raise
         DS2_TASK.discard(chat_id)
     elif ds == "3":
         DS3_TASK.add(chat_id)
@@ -103,7 +103,7 @@ async def ds_(client: User, m: Message):
             try:
                 await copy(message, chat_id, delay)
             except BaseException:
-                break
+                raise
         DS3_TASK.discard(chat_id)
     elif ds == "4":
         DS4_TASK.add(chat_id)
@@ -113,7 +113,7 @@ async def ds_(client: User, m: Message):
             try:
                 await copy(message, chat_id, delay)
             except BaseException:
-                break
+                raise
         DS4_TASK.discard(chat_id)
     else:
         DS_TASK.add(chat_id)
@@ -123,7 +123,7 @@ async def ds_(client: User, m: Message):
             try:
                 await copy(message, chat_id, delay)
             except BaseException:
-                break
+                raise
         DS_TASK.discard(chat_id)
 
 
@@ -236,9 +236,17 @@ async def copy(
                 reply_to_message_id=None,
             )
         await sleep(time)
-    except FloodWait as fw:
-        await sleep(fw.value)
+    except SlowmodeWait as flood:
+        await sleep(flood.value)
         await copy(message, chat_id, time)
+    except FloodWait as flood:
+        await sleep(flood.value)
+        await copy(message, chat_id, time)
+    except TimeoutError:
+        try:
+            await copy(message, chat_id, time)
+        except BaseException:
+            raise
     except BaseException:
         raise
 
@@ -266,6 +274,12 @@ async def eor(
         )
         if not time:
             return msg
+    except SlowmodeWait as flood:
+        await sleep(flood.value)
+        await eor(message, text, time)
+    except FloodWait as flood:
+        await sleep(flood.value)
+        await eor(message, text, time)
     try:
         await sleep(time)
         return await msg.delete()
